@@ -1,0 +1,24 @@
+# Kitt Peak NSO Vacuum Telescope code
+## Introduction
+This repository contains codes used in my final year MMath project.
+
+## How to use the IDL codes
+Clone the repository and add the `src` directory to the IDL path. The `tools/` directory contains `update_idl_path` to automate this for the current shell. This should work for most shells. IDL sessions then called will be able to access functions and procedures in `src`.
+
+You can do this with
+
+```console
+	git clone https://github.com/celestyal/kitt-peak-nvst
+  cd kitt-peak-nvst
+	. tools/update_idl_path
+```
+
+**NOTE:** By default, `update_idl_path` assumes you are using `gdl`. To change this, manually edit the `IDL_CMD` variable at the start of the script.
+
+## Example codes
+Currently, an example script `mmath_project.pro` is contained in `examples/`. This is part of my final year MMath project.
+
+## Acknowledgment
+NSO/Kitt Peak data used here are produced cooperatively by NSF/NOAO, NASA/GSFC, and NOAA/SEL.
+
+The data can be accessed at https://nispdata.nso.edu/ftp/kpvt/synoptic/
