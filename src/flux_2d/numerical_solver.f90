@@ -1,7 +1,5 @@
 module numerical_solver
-
     use file_io
-
     implicit none
 
     ! quantitys of interest, globally accessible
@@ -11,7 +9,6 @@ module numerical_solver
     ! actual quantities.
     real, private, allocatable, dimension(:,:) :: b_corner, vxx, vxy, vxx_yrib, &
         vxy_xrib
-
 contains
 
     subroutine init_farrays(nx, ny)
@@ -26,7 +23,6 @@ contains
         allocate(b(nx+2,ny+2))
         allocate(jx(nx,ny+1))
         allocate(jy(nx+1,ny))
-
     end subroutine init_farrays
 
 
@@ -64,7 +60,6 @@ contains
 
         b(2:nx+1,2:ny+1) = (ay(2:nx+1, 1:ny)-ay(1:nx, 1:ny)) / dx - (ax(1:nx, 2:ny+1)-ax(1:nx, 1:ny)) / dy
         if (boundary_condition .ne. 0) call apply_boundary_condition(boundary_condition, nx, ny)
-
     end subroutine calculate_b
 
 
@@ -98,7 +93,6 @@ contains
 
         jx = ( b(2:nx+1, 2:ny+2) - b(2:nx+1, 1:ny+1) ) / dy
         jy =-( b(2:nx+2, 2:ny+1) - b(1:nx+1, 2:ny+1) ) / dx
-
     end subroutine calculate_j
 
     subroutine rk4(ax, ay, vx, vy, diffusivity, boundary_condition, dx, dy, dt, nsteps, nx, ny, start, number_of_saves, identifier)

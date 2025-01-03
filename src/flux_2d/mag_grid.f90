@@ -1,8 +1,6 @@
 module mag_grid
     implicit none
-
 contains
-
     subroutine populate_grid_coordinates(axx, axy, ayx, ayy, gridx, gridy, &
             bx, by, xmin, ymin, dx, dy, nx, ny)
         real, intent(out) :: axx(:), axy(:), ayx(:), ayy(:), gridx(:), &

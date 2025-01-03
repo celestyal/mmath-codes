@@ -24,5 +24,4 @@ module types
         real :: xmax, xmin, ymax, ymin
         integer :: nx, ny
     end type grid
-
 end module types

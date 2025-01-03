@@ -1,10 +1,6 @@
 module velocity
-
     implicit none
-
 contains
-
-
     subroutine apply_convergent_flow(velocity, speed, convergence_point, coordinate, nx)
         real, intent(inout) :: velocity(:,:)
         real, intent(in) :: speed, convergence_point, coordinate(:)
@@ -17,7 +13,6 @@ contains
         do concurrent (i = 1:nx+1, coordinate(i) .gt. convergence_point)
         velocity(:,i) = velocity(:,i) - speed
         end do
-
     end subroutine apply_convergent_flow
 
 
@@ -51,5 +46,4 @@ contains
         x = x / length
         y = y / length
     end subroutine apply_velocity_scaling
-
 end module velocity

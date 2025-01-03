@@ -1,8 +1,6 @@
 module vector_potential
     implicit none
-
 contains
-
     subroutine current_sheet(ax, ay, x, nx)
         integer :: i
         integer, intent(in) :: nx

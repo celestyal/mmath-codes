@@ -5,7 +5,6 @@ program flux_2d
     use numerical_solver
     use types
     use velocity
-
     implicit none
 
     type(debug) :: d
@@ -17,19 +16,19 @@ program flux_2d
     character(128) :: file, int_char
     character(512) :: identifier
 
-    !read the identifier in
+    ! read the identifier in
     identifier =  read_identifier()
 
-    !read the namelists in
+    ! read the namelists in
     call read_profile(p, identifier)
     call read_debug(d, identifier)
     call read_grid(g, identifier)
 
-    !derive dx and dy
+    ! derive dx and dy
     dx = (g%xmax-g%xmin)/g%nx
     dy = (g%ymax-g%ymin)/g%ny
 
-    !allocate stuff using grid variables
+    ! allocate stuff using grid variables
     allocate(a%x(g%nx, g%ny+1))
     allocate(a%y(g%nx+1, g%ny))
     allocate(ax_coord%x(g%nx))
@@ -50,19 +49,19 @@ program flux_2d
     v%x = 0.0
     v%y = 0.0
 
-    !populate velocities
+    ! populate velocities
     call apply_convergent_flow(v%x, p%convergence_speed, p%convergence_point, grid_coord%x, g%nx)
     call apply_differential_flow(v%x, p%differential_speed, grid_coord%y, g%nx)
     call apply_meridional_flow(v%y, p%meridional_speed)
 
-    !scale velocities to be units per second
+    ! scale velocities to be units per second
     call apply_velocity_scaling(p%diffusivity, v%x, v%y, p%length_scale)
 
-    !find timestep that satisfies cfl condition
+    ! find timestep that satisfies cfl condition
     call find_dt(dt, v%x, v%y, dx, dy, p%diffusivity)
     p%steps = nint( (p%simulation_end_time-p%simulation_start_time)/dt )
 
-    !initialise quantity arrays
+    ! initialise quantity arrays
     call init_farrays(g%nx, g%ny)
 
     if (d%new_simulation) then
@@ -79,27 +78,27 @@ program flux_2d
             call bipole_no_tilt(a%x, a%y, ay_coord%x, ay_coord%y, g%nx, g%ny)
         end if
 
-        !export initial snapshot of the system before evolution
+        ! export initial snapshot of the system before evolution
         if (d%number_of_saves .gt. 0) then
             call save_snapshot(.true., identifier, a%x, a%y, dx, dy, g%nx, g%ny, vx=v%x, vy=v%y)
             call export_for_idl(identifier, g)
             call save_timestamp(identifier, p%simulation_start_time)
         end if
     else
-        !need to read in the existing profile for a
+        ! need to read in the existing profile for a
     end if
 
-    !use numerical solver
+    ! use numerical solver
     select case (d%numerical_solver)
-    !euler
+    ! euler
     case (1)
         call euler(a%x, a%y, v%x, v%y, p%diffusivity, p%boundary_condition, dx, dy, dt, p%steps, g%nx, g%ny, p%simulation_start_time, d%number_of_saves, identifier)
 
-    !heun
+    ! heun
     case (2)
         call heun(a%x, a%y, v%x, v%y, p%diffusivity, p%boundary_condition, dx, dy, dt, p%steps, g%nx, g%ny, p%simulation_start_time, d%number_of_saves, identifier)
 
-    !runge-kutta 4
+    ! runge-kutta 4
     case (3)
         call rk4(a%x, a%y, v%x, v%y, p%diffusivity, p%boundary_condition, dx, dy, dt, p%steps, g%nx, g%ny, p%simulation_start_time, d%number_of_saves, identifier)
 
@@ -116,16 +115,16 @@ contains
         real, intent(out) :: dt
         integer :: i
 
-        !max velocities (km/s)
+        ! max velocities (km/s)
         mvx = maxval(abs(vx))
         mvy = maxval(abs(vy))
 
-        !times to cross each grid
+        ! times to cross each grid
         t(1) = dx / mvx
         t(2) = dy / mvy
         t(3) = (dx*dy) / abs(diffusivity)
 
-        !reference value to compare to
+        ! reference value to compare to
         dt = huge(1.)
 
         do concurrent (i = 1:3, (t(i) .gt. 0) .and. (t(i) .lt. dt))
