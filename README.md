@@ -9,7 +9,7 @@ You can do this with
 
 ```console
   git clone https://github.com/celestyal/mmath-codes.git
-  cd kitt-peak-nvst
+  cd mmath-codes
   . tools/update_idl_path
 ```
 
