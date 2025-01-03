@@ -15,6 +15,9 @@ You can do this with
 
 **NOTE:** By default, `update_idl_path` assumes you are using `gdl`. To change this, manually edit the `IDL_CMD` variable at the start of the script.
 
+## How to use the 2D flux transport code
+This code is an early prototype. Breaking changes to existing simulations are almost guaranteed. Documentation will be provided when the codebase is stable.
+
 ## Example codes
 Example codes will be stored in `examples/`. Currently the only code example is `kitt_peak.pro`. This script was written to develop an understanding of solar magnetic fields in research, by working with synoptic magnetogram maps collected by the NSO Vacuum Telescope located on Kitt Peak, Arizona.
 
