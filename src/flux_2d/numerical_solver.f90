@@ -170,7 +170,6 @@ contains
 
         progress = (real(i)/real(nsteps))*100
         if (mod(i, ceiling(real(nsteps)/100.0)) == 0.0 ) then
-            call execute_command_line("clear")
             print *, "progress: ", nint(progress), "%"
         end if
 
