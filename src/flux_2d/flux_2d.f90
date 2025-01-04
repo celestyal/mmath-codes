@@ -14,15 +14,15 @@ program flux_2d
     type(coordinates) :: ax_coord, ay_coord, grid_coord, b_coord
     real :: dt, dx, dy
     character(128) :: file, int_char
-    character(512) :: identifier
+    character(512) :: id
 
-    ! read the identifier in
-    identifier =  read_identifier()
+    ! read the id in
+    id =  read_id()
 
     ! read the namelists in
-    call read_profile(p, identifier)
-    call read_debug(d, identifier)
-    call read_grid(g, identifier)
+    call read_profile(p, id)
+    call read_debug(d, id)
+    call read_grid(g, id)
 
     ! derive dx and dy
     dx = (g%xmax-g%xmin)/g%nx
@@ -80,9 +80,9 @@ program flux_2d
 
         ! export initial snapshot of the system before evolution
         if (d%number_of_saves .gt. 0) then
-            call save_snapshot(.true., identifier, a%x, a%y, dx, dy, g%nx, g%ny, vx=v%x, vy=v%y)
-            call export_for_idl(identifier, g)
-            call save_timestamp(identifier, p%simulation_start_time)
+            call save_snapshot(.true., id, a%x, a%y, dx, dy, g%nx, g%ny, vx=v%x, vy=v%y)
+            call export_for_idl(id, g)
+            call save_timestamp(id, p%simulation_start_time)
         end if
     else
         ! need to read in the existing profile for a
@@ -90,24 +90,16 @@ program flux_2d
 
     ! use numerical solver
     select case (d%numerical_solver)
-    ! euler
-    case (1)
-        call euler(a%x, a%y, v%x, v%y, p%diffusivity, p%boundary_condition, dx, dy, dt, p%steps, g%nx, g%ny, p%simulation_start_time, d%number_of_saves, identifier)
-
-    ! heun
-    case (2)
-        call heun(a%x, a%y, v%x, v%y, p%diffusivity, p%boundary_condition, dx, dy, dt, p%steps, g%nx, g%ny, p%simulation_start_time, d%number_of_saves, identifier)
-
-    ! runge-kutta 4
-    case (3)
-        call rk4(a%x, a%y, v%x, v%y, p%diffusivity, p%boundary_condition, dx, dy, dt, p%steps, g%nx, g%ny, p%simulation_start_time, d%number_of_saves, identifier)
-
+    case (1) ! euler
+        call euler(a%x, a%y, v%x, v%y, p%diffusivity, p%boundary_condition, dx, dy, dt, p%steps, g%nx, g%ny, p%simulation_start_time, d%number_of_saves, id)
+    case (2) ! heun
+        call heun(a%x, a%y, v%x, v%y, p%diffusivity, p%boundary_condition, dx, dy, dt, p%steps, g%nx, g%ny, p%simulation_start_time, d%number_of_saves, id)
+    case (3) ! rk4
+        call rk4(a%x, a%y, v%x, v%y, p%diffusivity, p%boundary_condition, dx, dy, dt, p%steps, g%nx, g%ny, p%simulation_start_time, d%number_of_saves, id)
     case default
         error stop
     end select
-
 contains
-
     subroutine find_dt(dt, vx, vy, dx, dy, diffusivity)
         real :: mvx, mvy
         real, dimension(3) :: t
