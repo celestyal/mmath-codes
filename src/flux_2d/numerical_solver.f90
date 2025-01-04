@@ -204,4 +204,31 @@ contains
         call export_data(id, jx, "jx.dat", trim(mode))
         call export_data(id, jy, "jy.dat", trim(mode))
     end subroutine save_snapshot
+
+
+    subroutine find_dt(dt, vx, vy, dx, dy, d)
+        real :: mvx, mvy
+        real, dimension(3) :: t
+        real, intent(in) :: vx(:,:), vy(:,:), dx, dy, d
+        real, intent(out) :: dt
+        integer :: i
+
+        ! max velocities (km/s)
+        mvx = maxval(abs(vx))
+        mvy = maxval(abs(vy))
+
+        ! times to cross each grid
+        t(1) = dx / mvx
+        t(2) = dy / mvy
+        t(3) = (dx*dy) / abs(d)
+
+        ! reference value to compare to
+        dt = huge(1.)
+
+        do concurrent (i = 1:3, (t(i) .gt. 0) .and. (t(i) .lt. dt))
+            dt = t(i)
+        end do
+
+        dt = dt / 15.0
+    end subroutine find_dt
 end module numerical_solver

@@ -99,30 +99,4 @@ program flux_2d
     case default
         error stop
     end select
-contains
-    subroutine find_dt(dt, vx, vy, dx, dy, diffusivity)
-        real :: mvx, mvy
-        real, dimension(3) :: t
-        real, intent(in) :: vx(:,:), vy(:,:), dx, dy, diffusivity
-        real, intent(out) :: dt
-        integer :: i
-
-        ! max velocities (km/s)
-        mvx = maxval(abs(vx))
-        mvy = maxval(abs(vy))
-
-        ! times to cross each grid
-        t(1) = dx / mvx
-        t(2) = dy / mvy
-        t(3) = (dx*dy) / abs(diffusivity)
-
-        ! reference value to compare to
-        dt = huge(1.)
-
-        do concurrent (i = 1:3, (t(i) .gt. 0) .and. (t(i) .lt. dt))
-        dt = t(i)
-        end do
-
-        dt = dt / 15.0
-    end subroutine find_dt
 end program flux_2d
