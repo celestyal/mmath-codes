@@ -206,11 +206,10 @@ contains
     end subroutine save_snapshot
 
 
-    subroutine find_dt(dt, vx, vy, dx, dy, d)
-        real :: mvx, mvy
+    pure function find_dt(vx, vy, dx, dy, d) result(dt)
+        real :: mvx, mvy, dt
         real, dimension(3) :: t
         real, intent(in) :: vx(:,:), vy(:,:), dx, dy, d
-        real, intent(out) :: dt
         integer :: i
 
         ! max velocities (km/s)
@@ -230,5 +229,5 @@ contains
         end do
 
         dt = dt / 15.0
-    end subroutine find_dt
+    end function find_dt
 end module numerical_solver

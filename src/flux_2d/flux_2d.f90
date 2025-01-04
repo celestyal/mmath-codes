@@ -58,7 +58,7 @@ program flux_2d
     call apply_velocity_scaling(p%diffusivity, v%x, v%y, p%length_scale)
 
     ! find timestep that satisfies cfl condition
-    call find_dt(dt, v%x, v%y, dx, dy, p%diffusivity)
+    dt = find_dt(v%x, v%y, dx, dy, p%diffusivity)
     p%steps = nint( (p%simulation_end_time-p%simulation_start_time)/dt )
 
     ! initialise quantity arrays
