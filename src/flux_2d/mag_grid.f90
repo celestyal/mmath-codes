@@ -26,7 +26,7 @@ contains
         integer :: i
 
         do concurrent (i=1:nx+1)
-        x(i) = xmin + (dx * (i-1))
+            x(i) = xmin + (dx * (i-1))
         end do
     end function velocity_x_coordinate
 
@@ -38,7 +38,7 @@ contains
         integer :: i
 
         do concurrent (i=1:ny+1)
-        y(i) = ymin + (dy * (i-1))
+            y(i) = ymin + (dy * (i-1))
         end do
     end function velocity_y_coordinate
 

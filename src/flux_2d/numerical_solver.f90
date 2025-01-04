@@ -10,7 +10,6 @@ module numerical_solver
     real, private, allocatable, dimension(:,:) :: b_corner, vxx, vxy, vxx_yrib, &
         vxy_xrib
 contains
-
     subroutine init_farrays(nx, ny)
         integer, intent(in) :: nx, ny
 
