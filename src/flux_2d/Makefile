@@ -22,13 +22,13 @@ LD := $(FC)
 RM := rm -f
 
 # List of all source files
-SRCS := mag_grid.f90 \
-				file_io.f90 \
-				vector_potential.f90 \
-				numerical_solver.f90 \
-				types.f90 \
-				velocity.f90
-TEST_SRCS := flux_2d.f90
+SRCS := flux2d_grid.f90 \
+				flux2d_io.f90 \
+				flux2d_ic.f90 \
+				flux2d_solv.f90 \
+				flux2d_types.f90 \
+				flux2d_vel.f90
+TEST_SRCS := flux2d.f90
 
 # Create lists of the build artefacts in this project
 OBJS := $(addsuffix .o, $(SRCS))
@@ -53,22 +53,22 @@ $(OBJS) $(TEST_OBJS): %.o: %
 	$(FC) $(COMPILERFLAGS) -c -o $@ $<
 
 # Define all module interdependencies
-mag_grid.mod := mag_grid.f90.o
-file_io.mod := file_io.f90.o
-vector_potential.mod := vector_potential.f90.o
-numerical_solver.mod := numerical_solver.f90.o
-types.mod := types.f90.o
-velocity.mod := velocity.f90.o
+flux2d_grid.mod := flux2d_grid.f90.o
+flux2d_io.mod := flux2d_io.f90.o
+flux2d_ic.mod := flux2d_vec.f90.o
+flux2d_solv.mod := flux2d_solv.f90.o
+flux2d_types.mod := flux2d_types.f90.o
+flux2d_vel.mod := flux2d_vel.f90.o
 
-file_io.f90.o: $(types.mod)
-numerical_solver.f90.o: $(file_io.mod)
+flux2d_io.f90.o: $(flux2d_types.mod)
+flux2d_solv.f90.o: $(flux2d_io.mod)
 
-flux_2d.f90.o: $(mag_grid.mod)
-flux_2d.f90.o: $(file_io.mod)
-flux_2d.f90.o: $(vector_potential.mod)
-flux_2d.f90.o: $(numerical_solver.mod)
-flux_2d.f90.o: $(types.mod)
-flux_2d.f90.o: $(velocity.mod)
+flux_2d.f90.o: $(flux2d_grid.mod)
+flux_2d.f90.o: $(flux2d_io.mod)
+flux_2d.f90.o: $(flux2d_ic.mod)
+flux_2d.f90.o: $(flux2d_solv.mod)
+flux_2d.f90.o: $(flux2d_types.mod)
+flux_2d.f90.o: $(flux2d_vel.mod)
 
 
 # Cleanup, filter to avoid removing source code by accident
