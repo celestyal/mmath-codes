@@ -1,4 +1,4 @@
-module mag_grid
+module flux2d_grid
     implicit none
 contains
     subroutine populate_grid_coordinates(axx, axy, ayx, ayy, gridx, gridy, &
@@ -101,4 +101,4 @@ contains
         y_temp = velocity_y_coordinate(ymin, dy, ny)
         y = y_temp(1:ny) + 0.5*dy
     end function ajy_y_coordinate
-end module mag_grid
+end module flux2d_grid

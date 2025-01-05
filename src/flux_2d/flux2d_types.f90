@@ -1,4 +1,4 @@
-module types
+module flux2d_types
     implicit none
 
     type plane_component
@@ -24,4 +24,4 @@ module types
         real :: xmax, xmin, ymax, ymin
         integer :: nx, ny
     end type grid
-end module types
+end module flux2d_types

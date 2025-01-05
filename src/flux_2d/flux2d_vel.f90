@@ -1,4 +1,4 @@
-module velocity
+module flux2d_vel
     implicit none
 contains
     subroutine apply_convergent_flow(velocity, speed, convergence_point, coordinate, nx)
@@ -46,4 +46,4 @@ contains
         x = x / length
         y = y / length
     end subroutine apply_velocity_scaling
-end module velocity
+end module flux2d_vel

@@ -1,10 +1,10 @@
-program flux_2d
-    use mag_grid
-    use file_io
-    use vector_potential
-    use numerical_solver
-    use types
-    use velocity
+program flux2d
+    use flux2d_grid
+    use flux2d_io
+    use flux2d_ic
+    use flux2d_solv
+    use flux2d_types
+    use flux2d_vel
     implicit none
 
     type(debug) :: d
@@ -12,12 +12,12 @@ program flux_2d
     type(profile) :: p
     type(plane_component) :: a, v
     type(coordinates) :: ax_coord, ay_coord, grid_coord, b_coord
-    real :: dt, dx, dy
-    character(128) :: file, int_char
+    real :: dx, dy, t1
+    integer :: i
     character(512) :: id
 
     ! read the id in
-    id =  read_id()
+    id = read_id()
 
     ! read the namelists in
     call read_profile(p, id)
@@ -57,13 +57,6 @@ program flux_2d
     ! scale velocities to be units per second
     call apply_velocity_scaling(p%diffusivity, v%x, v%y, p%length_scale)
 
-    ! find timestep that satisfies cfl condition
-    dt = find_dt(v%x, v%y, dx, dy, p%diffusivity)
-    p%steps = nint( (p%simulation_end_time-p%simulation_start_time)/dt )
-
-    ! initialise quantity arrays
-    call init_farrays(g%nx, g%ny)
-
     if (d%new_simulation) then
         d%new_simulation = .false.
         if (p%potential_configuration .eq. 0) then
@@ -77,26 +70,21 @@ program flux_2d
         else if (p%potential_configuration .eq. 3) then !load bipole with no tilt
             call bipole_no_tilt(a%x, a%y, ay_coord%x, ay_coord%y, g%nx, g%ny)
         end if
-
-        ! export initial snapshot of the system before evolution
-        if (d%number_of_saves .gt. 0) then
-            call save_snapshot(.true., id, a%x, a%y, dx, dy, g%nx, g%ny, vx=v%x, vy=v%y)
-            call export_for_idl(id, g)
-            call save_timestamp(id, p%simulation_start_time)
-        end if
     else
         ! need to read in the existing profile for a
     end if
 
-    ! use numerical solver
-    select case (d%numerical_solver)
-    case (1) ! euler
-        call euler(a%x, a%y, v%x, v%y, p%diffusivity, p%boundary_condition, dx, dy, dt, p%steps, g%nx, g%ny, p%simulation_start_time, d%number_of_saves, id)
-    case (2) ! heun
-        call heun(a%x, a%y, v%x, v%y, p%diffusivity, p%boundary_condition, dx, dy, dt, p%steps, g%nx, g%ny, p%simulation_start_time, d%number_of_saves, id)
-    case (3) ! rk4
-        call rk4(a%x, a%y, v%x, v%y, p%diffusivity, p%boundary_condition, dx, dy, dt, p%steps, g%nx, g%ny, p%simulation_start_time, d%number_of_saves, id)
-    case default
-        error stop
-    end select
-end program flux_2d
+    ! number of saves will be changed to the number of checkpoints. An additional start and end
+    ! save will occur in addition to the checkpoints. Saving is currently not implemented.
+
+    ! checks will need to made to ensure that there aren't more checkpoints than number of steps
+    ! in the simulation.
+
+    ! calculate save checkpoints
+    t1 = (1/real(d%number_of_saves+1))*p%simulation_end_time 
+    do i=1, d%number_of_saves
+        ! solve
+        call solv_ind(a%x, a%y, v%x, v%y, p%diffusivity, dx, dy, t1, p%boundary_condition, d%numerical_solver)
+        print *, "checkpoint ", i, " of ", d%number_of_saves, " completed (no save was actually made as it its implementation is being rewritten)"
+    end do
+end program flux2d

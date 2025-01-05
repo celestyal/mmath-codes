@@ -1,4 +1,4 @@
-module vector_potential
+module flux2d_ic
     implicit none
 contains
     subroutine current_sheet(ax, ay, x, nx)
@@ -56,4 +56,4 @@ contains
 
         ay = b0*rho*exp(0.5-epsilon)
     end subroutine bipole_no_tilt
-end module vector_potential
+end module flux2d_ic

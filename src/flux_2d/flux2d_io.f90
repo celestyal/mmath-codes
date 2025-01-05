@@ -1,6 +1,6 @@
-module file_io
+module flux2d_io
 
-    use types
+    use flux2d_types
 
     implicit none
 
@@ -116,4 +116,4 @@ contains
         read(2, *), id
         close(2)
     end function read_id
-end module file_io
+end module flux2d_io
