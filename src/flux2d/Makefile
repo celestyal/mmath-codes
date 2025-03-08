@@ -2,13 +2,13 @@
 MAKEFLAGS += --no-builtin-rules --no-builtin-variables
 
 # gfortran flags
-COMPILERFLAGS += -ffree-line-length-0 -O3 -fimplicit-none  -Wall -Wline-truncation  -Wcharacter-truncation  -Wsurprising  -Waliasing  -Wimplicit-interface -fbounds-check  -Wunused-parameter -fwhole-file -fcheck=all -pedantic  -fbacktrace -fdefault-real-8
+COMPILERFLAGS += -ffree-line-length-0 -O3 -fimplicit-none  -Wall -Wline-truncation  -Wcharacter-truncation  -Wsurprising  -Waliasing  -Wimplicit-interface -fbounds-check -Wunused-parameter -fwhole-file -fcheck=all -pedantic -fbacktrace -fdefault-real-8 -fdefault-integer-8 -g
 
 # ifort flags
-#COMPILERFLAGS += -r8 -g -traceback -check all -fp-stack-check #-fast -r8
+#COMPILERFLAGS += -r8 -g -traceback -check all -fp-stack-check -fast -r8
 
 # ifx flags
-#COMPILERFLAGS +=  -r8 -xHost -O3
+#COMPILERFLAGS += -r8 -xHost -O3 -check all,nouninit -traceback -g
 
 # Project name
 NAME := flux_2d
@@ -22,13 +22,9 @@ LD := $(FC)
 RM := rm -f
 
 # List of all source files
-SRCS := flux2d_grid.f90 \
-				flux2d_io.f90 \
-				flux2d_ic.f90 \
-				flux2d_solv.f90 \
-				flux2d_types.f90 \
-				flux2d_vel.f90
-TEST_SRCS := flux2d.f90
+SRCS := flux2d_io.f90 flux2d_solv.f90
+
+TEST_SRCS := flux2d.f90 flux2d_gen_fields.f90
 
 # Create lists of the build artefacts in this project
 OBJS := $(addsuffix .o, $(SRCS))
@@ -53,23 +49,11 @@ $(OBJS) $(TEST_OBJS): %.o: %
 	$(FC) $(COMPILERFLAGS) -c -o $@ $<
 
 # Define all module interdependencies
-flux2d_grid.mod := flux2d_grid.f90.o
 flux2d_io.mod := flux2d_io.f90.o
-flux2d_ic.mod := flux2d_vec.f90.o
 flux2d_solv.mod := flux2d_solv.f90.o
-flux2d_types.mod := flux2d_types.f90.o
-flux2d_vel.mod := flux2d_vel.f90.o
 
-flux2d_io.f90.o: $(flux2d_types.mod)
-flux2d_solv.f90.o: $(flux2d_io.mod)
-
-flux_2d.f90.o: $(flux2d_grid.mod)
-flux_2d.f90.o: $(flux2d_io.mod)
-flux_2d.f90.o: $(flux2d_ic.mod)
-flux_2d.f90.o: $(flux2d_solv.mod)
-flux_2d.f90.o: $(flux2d_types.mod)
-flux_2d.f90.o: $(flux2d_vel.mod)
-
+flux2d.f90.o: $(flux2d_io.mod)
+flux2d.f90.o: $(flux2d_solv.mod)
 
 # Cleanup, filter to avoid removing source code by accident
 clean:
