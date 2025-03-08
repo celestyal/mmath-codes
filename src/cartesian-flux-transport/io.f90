@@ -12,7 +12,7 @@
 ! ...
 ! aysaves
 
-module flux2d_io
+module cft_io
     implicit none
     ! kinds need to be precisely specified so we know how long the header should be
     type :: header ! 104 bytes
@@ -427,4 +427,4 @@ contains
     subroutine print_help()
         print *, "Calling print_help"
     end subroutine print_help
-end module flux2d_io
+end module cft_io

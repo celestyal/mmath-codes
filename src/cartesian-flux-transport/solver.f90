@@ -1,6 +1,6 @@
-program flux2d
-    use flux2d_io
-    use flux2d_solv
+program cft_solver
+    use cft_io
+    use cft_kernel
     implicit none
 
     integer :: i, iter
@@ -53,4 +53,4 @@ program flux2d
     else
         print *, "Simulation already completed."
     end if
-end program flux2d
+end program solver

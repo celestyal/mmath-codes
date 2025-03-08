@@ -1,4 +1,4 @@
-module flux2d_solv
+module cft_kernel
     implicit none
 
     real, private, allocatable, dimension(:,:) :: b, jx, jy, b_corner, vxx, vxy, vxx_yrib, vxy_xrib
@@ -199,4 +199,4 @@ contains
             ay = ay + 0.5*dt*(k1y+k2y)
         end do
     end subroutine heun
-end module flux2d_solv
+end module cft_kernel
