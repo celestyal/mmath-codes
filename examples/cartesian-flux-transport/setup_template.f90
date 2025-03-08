@@ -1,4 +1,4 @@
-program generator
+program cft_generator
     implicit none
 
     !
@@ -273,4 +273,4 @@ contains
             close(u)
         endif
     end subroutine generator
-end program generator
+end program cft_generator
