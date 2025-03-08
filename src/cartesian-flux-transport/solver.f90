@@ -53,4 +53,4 @@ program cft_solver
     else
         print *, "Simulation already completed."
     end if
-end program solver
+end program cft_solver
