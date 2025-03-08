@@ -11,7 +11,7 @@ COMPILERFLAGS += -ffree-line-length-0 -O3 -fimplicit-none  -Wall -Wline-truncati
 #COMPILERFLAGS += -r8 -xHost -O3 -check all,nouninit -traceback -g
 
 # Project name
-NAME := flux_2d
+NAME := cartesian_flux_transport
 
 # Configuration settings
 FC := gfortran
@@ -22,9 +22,9 @@ LD := $(FC)
 RM := rm -f
 
 # List of all source files
-SRCS := flux2d_io.f90 flux2d_solv.f90
+SRCS := io.f90 kernel.f90
 
-TEST_SRCS := flux2d.f90 flux2d_gen_fields.f90
+TEST_SRCS := solver.f90
 
 # Create lists of the build artefacts in this project
 OBJS := $(addsuffix .o, $(SRCS))
@@ -49,11 +49,11 @@ $(OBJS) $(TEST_OBJS): %.o: %
 	$(FC) $(COMPILERFLAGS) -c -o $@ $<
 
 # Define all module interdependencies
-flux2d_io.mod := flux2d_io.f90.o
-flux2d_solv.mod := flux2d_solv.f90.o
+io.mod := io.f90.o
+kernel.mod := kernel.f90.o
 
-flux2d.f90.o: $(flux2d_io.mod)
-flux2d.f90.o: $(flux2d_solv.mod)
+solver.f90.o: $(io.mod)
+solver.f90.o: $(kernel.mod)
 
 # Cleanup, filter to avoid removing source code by accident
 clean:
