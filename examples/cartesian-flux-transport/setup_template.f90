@@ -1,36 +1,41 @@
-program flux2d_gen_fields
+program generator
     implicit none
 
     !
-    ! File saving parameters
+    ! Modifiable parameters
     !
 
-    ! Only disable if you have already generated a profile and are looking to overwrite part of the profile
+
+    !
+    ! File saving (keep enabled)
+    !
+
+    ! Only disable if you have already generated a profile and are looking to replace part of it
     logical, parameter :: save_ax               = .true.
     logical, parameter :: save_ay               = .true.
     logical, parameter :: save_vx               = .true.
     logical, parameter :: save_vy               = .true.
     logical, parameter :: save_grid             = .true.
 
-    ! Directory to write output files to
-    character(len=128), parameter :: directory  = "./exports/example/" ! Must have / at end
+    ! Directory to write output files to, "./" is the working directory
+    character(len=128), parameter :: directory  = "./"
     
+
     !
     ! Grid parameters
     !
 
-    ! Number of cells (higher -> more computational resources used)
+    ! Number of cells (higher -> more resources used and longer computation times)
     integer, parameter :: nx                    = 500
     integer, parameter :: ny                    = 500
 
     ! Dimensionless x and y minimum and maximum values 
-    ! y=0 represents the equator
-    ! x=0 has no physical importance
     ! Unit length represents the length scale, that is passed separately to the solver.
     real, parameter :: xmin                     = -0.5
     real, parameter :: xmax                     =  0.5
     real, parameter :: ymin                     = -0.5
     real, parameter :: ymax                     =  0.5
+
 
     !
     ! Magnetic vector potential configuration
@@ -42,21 +47,32 @@ program flux2d_gen_fields
     ! 3 -> single bipole
     integer, parameter :: magnetic_profile      = 1
 
-    ! Plasma velocity profile
-    logical, parameter :: custom_flow           = .false. !Manually edit "custom_flow()"
-    logical, parameter :: differential_rotation = .false.
-    real, parameter :: diffrot_speed            = 0.0 !Speed at the equator of the star
+
+    !
+    ! Plasma velocity configuration
+    !
+
+    ! Can toggle this to add your own custom flow using the your_flow subroutine
+    logical, parameter :: custom_flow           = .false.
+
+    ! When observed from Earth, differential rotation direction reverses at mid latitudes
+    logical, parameter :: differential_rotation = .true.
+    real, parameter :: diffrot_coefficient      = 2
+    real, parameter :: stagnation_point         = 0.5
     
-    logical, parameter :: meridional_flow       = .false.
-    real, parameter :: meridional_flow_speed    = 0.0
+    ! Meridional flow is positive when North of equator, Negative when South of equator
+    logical, parameter :: meridional_flow       = .true.
+    real, parameter :: meridional_flow_speed    = 0.011
     
     logical, parameter :: convergent_flow       = .false.
     real, parameter :: convergent_x_coord       = 0.0
     real, parameter :: convergence_speed        = 0.0
     
-    !!! End of modifiable parameters
 
-    !!! Do not edit
+    !
+    ! End of modifiable parameters
+    !
+
     real, dimension(nx, ny+1) :: ax
     real, dimension(nx) :: xrib
     real, dimension(ny) :: yrib
@@ -107,26 +123,28 @@ contains
 
     ! Differential rotation
     subroutine diffrot()
-        real, parameter :: omega=2.0
         integer :: i
 
-        do concurrent (i=1:nx+1)
-            vx(:,i) = -omega*xrib(i)
+        !
+        ! Taken to be negative at high latitudes, accounting for the Earth's orbit
+        ! in a sidereal frame of reference.
+        ! The stagnation point is the point where the reversal occurs (at mid latitudes)
+        !
+        do concurrent (i=1:ny+1)
+            vx(:, i) = vx(:, i) - diffrot_coefficient*(yrib(i)-stagnation_point)
         end do
     end subroutine diffrot
 
 
     ! Meridional (poleward) flow
     subroutine merflow()
-        ! To be implemented
+        integer :: i
+
+            vy = vy + meridional_flow_speed * (yrib(i)/abs(yrib(i)))
     end subroutine merflow
 
 
-    !
-    ! Do not edit
-    ! Routines used to provide coordinates that can be used to generate
-    ! the velocity and magnetic vector potential
-    !
+    ! Coordinates needed to help populate vector potential and velocities
     subroutine coordinates()
         integer :: i
         real :: dx, dy
@@ -135,10 +153,10 @@ contains
         dy = (ymax-ymin)/ny
 
         do concurrent (i=1:nx+1)
-            xcorn(i) = xmin + (dx * (i-1))
+            xcorn(i) = xmin + dx*(i-1)
         end do
         do concurrent (i=1:ny+1)
-            ycorn(i) = ymin + (dy * (i-1))
+            ycorn(i) = ymin + dy*(i-1)
         end do
 
         xrib = xcorn(2:) - dx*0.5
@@ -189,11 +207,7 @@ contains
     end subroutine single_bipole
 
 
-    !
-    ! Do not edit
-    ! This code generates everything and saves the needed data used by the
-    ! solver
-    !
+    ! The generator subroutine applies the configuration parameters
     subroutine generator()
         call coordinates()
 
@@ -211,24 +225,24 @@ contains
         end if
 
         select case (magnetic_profile)
-        !Custom
+        ! Custom
         case (0)
             call your_a()
-        !Current Sheet
+        ! Current Sheet
         case (1)
             call csheet()
-        !Ax=-0.5*B0*y, Ay=0.5*B0*x (gives constant B)
+        ! Ax=-0.5*B0*y, Ay=0.5*B0*x (gives constant B)
         case (2)
             call const_b()
-        !Single bipole
+        ! Single bipole
         case (3)
             call single_bipole()
         end select
 
-        !Create output directory
+        ! Create output directory if not exists (only tested with GNU coreutils)
         call execute_command_line('mkdir -p '//directory)
 
-        !Write to file
+        ! Write to file
         if (save_ax .eqv. .true.) then
             open(newunit=u, file=trim(directory)//"ax.dat", form='unformatted', status='new', action='write')
                 write(u) ax
@@ -259,4 +273,4 @@ contains
             close(u)
         endif
     end subroutine generator
-end program flux2d_gen_fields
+end program generator
