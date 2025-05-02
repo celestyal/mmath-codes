@@ -1,18 +1,7 @@
-#This is not currently POSIX compliant due to $_ but this script has been
-#tested on BASH and KSH
+#!/bin/csh
 
-#(Un)comment the appropriate line to select whether you are using idl or gdl
-IDL_CMD="gdl"
-#IDL_CMD="idl"
-
-#Directory containing this script
-DIR=$(dirname "$(realpath ${BASH_SOURCE[0]:-$_})") 
-DIR_SRC=$(realpath "$DIR/../src")
-DIR_EX=$(realpath "$DIR/../examples")
-
-#Add directories containing needed code to IDL's search path
-if [ $IDL_CMD = "idl" ]; then 
-  export IDL_PATH=${IDL_PATH:+${IDL_PATH}:}"$DIR_SRC":"$DIR_EX"
-else
-  export GDL_PATH=${GDL_PATH:+${GDL_PATH}:}"$DIR_SRC":"$DIR_EX"
-fi
+#+
+# To be executed from the root folder of this repository
+# This adds the src/ folder to the IDL_PATH
+#-
+setenv IDL_PATH '<IDL_DEFAULT>:'+`pwd`/src
