@@ -1,25 +1,43 @@
-! Structure of simulation file
-! preamble: version, header length
-! header namelist variables written separately
-! vx
-! vy
-! t=t1 is starting time
-! ax1
-! ay1
-! t=t2
-! ax2
-! ay2
-! ...
-! aysaves
+!+
+! :Description:
+!   This module implements the parsing of command line arguments and the file
+!   read and write routines. The main purpose of the module is to
+!   - Read in the initial profile
+!   - Enable the user to select simulation parameters when the program is
+!     called
+!   - Write saves to file
+!   The program uses stream I/O to efficiently read and write unformatted data
+!   to file. It is assumed that the program is compiled with a default integer
+!   and real precision of 8 bytes (double precision). The program will not
+!   run if it is compiled with different precisions.
+!
+!   The simulation file is structured as follows:
+!     Preamble: version, header length
+!     Header (each variable in the namelist is written separately)
+!     vx
+!     vy
+!     t=t1 (initial save at t=0)
+!     ax1
+!     ay1
+!     t=t2
+!     ax2
+!     ay2
+!     ...
+!     aysaves
+!-
 
 module cft_io
     implicit none
-    ! kinds need to be precisely specified so we know how long the header should be
+
+    !+ Header written to file
     type :: header ! 104 bytes
         integer :: solv, bc, nx, ny, sav
         real :: d, t, lx, ly, xmin, xmax, ymin, ymax
     end type header
 
+    !+ Arguments used across the program are an extension of the header
+    !  variables
+    !-
     type, extends(header) :: args
         character(len=:), allocatable :: dir, file
         real :: freq
@@ -32,10 +50,11 @@ contains
         type(args), intent(inout) :: arg
         real, intent(out) :: t
 
-        ! checking existence should be done when parsing args
         if (arg%file .eq. '') then
+            !+ Generate new simulation file if no existing file was supplied
             call newsim(ax, ay, vx, vy, arg)
         else
+            !+ Load existing simulation
             call rehead(arg)
             call resav(arg%file, ax, ay, vx, vy, t=t, sav=-1)
         end if
@@ -50,26 +69,25 @@ contains
         type(args) :: arg
         integer :: u, s
 
-        ! Pre-write checks
+        !+ Chcek file existence
         call checkex(file)
         inquire(file=file, size=s)
         
-        ! If not initial save, read previous save time
         arg%file = file
         call rehead(arg)
         if (t .ne. 0) then
-            ! Read previous save time
+            !+ If not initial save, read previous save
             call resav(arg%file, t=told, sav=-1)
         else
             told = 0
         end if
 
-        ! Write save data
+        !+ Append save data to the simulation save file
         open(newunit=u, file=file, access='stream', status='old')
             write(unit=u, pos=s+1) t+told, ax, ay
         close(unit=u)
 
-        ! Update header
+        !+ Update header with incremented save count
         arg%sav = arg%sav + 1
         call wrhead(file, arg)
     end subroutine savsim
@@ -80,9 +98,11 @@ contains
         type(args) :: arg
         integer :: u
         
+        !+ Check file exists
         call checkex(file)
+
         open(newunit=u, file=file, access='stream', status='old')
-            ! write new header to file
+            !+ Write new/updated header to file
             write(u, pos=17) arg%solv, arg%bc, arg%nx, arg%ny, arg%sav, arg%d, arg%t, arg%lx, arg%ly, arg%xmin, arg%xmax, arg%ymin, arg%ymax
         close(unit=u)
     end subroutine wrhead
@@ -93,7 +113,7 @@ contains
         integer :: u, p
         integer, parameter :: version=1, hlen=104 
 
-        ! Write new preamble to file
+        !+ Write new/updated preamble to file
         open(newunit=u, file=file, access='stream', status='new')
             write(u, pos=1) version, hlen
         close(unit=u)
@@ -105,17 +125,16 @@ contains
         type(args), intent(inout) :: arg
         integer :: u
         
-        ! Read in quantities from simulation directory
-        ! Grid info
+        !+ Load information about the grid from file
         call readgr(trim(arg%dir)//'grid_info.dat', arg%xmin, arg%xmax, arg%ymin, arg%ymax, arg%nx, arg%ny)
 
-        ! Allocate quantities
+        !+ Allocate scalar fields
         allocate(ax(arg%nx, arg%ny+1))
         allocate(ay(arg%nx+1, arg%ny))
         allocate(vx(arg%nx+1, arg%ny+1))
         allocate(vy(arg%nx+1, arg%ny+1))
 
-        ! Read in files
+        !+ Read in scalar fields
         call rearr(trim(arg%dir)//'ax.dat', ax)
         call rearr(trim(arg%dir)//'ay.dat', ay)
         call rearr(trim(arg%dir)//'vx.dat', vx)
@@ -123,16 +142,16 @@ contains
 
         arg%file = trim(arg%dir)//'simulation.bin'
 
-        ! Write file preamble
+        !+ Write file preamble
         call wrpre(arg%file)
 
-        ! Write file header
+        !+ Write file header
         call wrhead(arg%file, arg)
         
-        ! Write velocities after header
+        !+ Write velocities after header
         call wrvel(arg%file, vx, vy)
 
-        ! Make initial save (t=0)
+        !+ Make initial save (t=0)
         call savsim(arg%file, ax, ay, 0.0)
     end subroutine newsim
 
@@ -143,11 +162,13 @@ contains
         integer, parameter :: hlen=104
         integer :: u
 
+        !+ Check file exists
         call checkex(file)
-        ! Implement a check to see that file size is 16+hlen
+
+        !+ More robust checks needed here
 
         open(newunit=u, file=file, access='stream', status='old')
-            ! Write velocities to file after header
+            !+ Write velocities to file after header
             write(u, pos=17+hlen) vx, vy
         close(unit=u)
     end subroutine wrvel
@@ -158,12 +179,15 @@ contains
         integer, parameter :: bypre=16
         integer :: u, v, l
         
-        ! check file exists
+        !+ Check file exists
         call checkex(arg%file)
 
         open(newunit=u, file=arg%file, status='old', action='read', access='stream', form='unformatted')
-            ! Preamble not currently used but will be used to determine where to start reading header from
-            read(u, pos=1) v, l 
+            !+
+            ! Read preamble and then the header.
+            ! The preamble is not currently used to deduce how to read the header ! but should be implemented later on.
+            !-
+            read(u, pos=1) v, l
             read(u, pos=bypre+1) arg%solv, arg%bc, arg%nx, arg%ny, arg%sav, arg%d, arg%t, arg%lx, arg%ly, arg%xmin, arg%xmax, arg%ymin, arg%ymax
         close(unit=u)
     end subroutine rehead
@@ -200,7 +224,7 @@ contains
         arg%file = file
         call rehead(arg)
 
-        ! determine offsets
+        !+ Determine offsets needed to read file properly
         byax = arg%nx*(arg%ny+1)*8
         byay = (arg%nx+1)*(arg%ny)*8
         byv = (arg%nx+1)*(arg%ny+1)*8
@@ -208,7 +232,7 @@ contains
         byt = 8
 
         open(newunit=u, file=arg%file, status='old', action='read', access='stream', form='unformatted')
-            ! read in velocities
+            !+ Read velocities
             offset = bypre + byhead + 1
             if (present(vx)) then
                 allocate(vx(arg%nx+1, arg%ny+1))
@@ -221,14 +245,16 @@ contains
                 read(u, pos=offset) vy
             end if
 
-            ! read time, ax, ay of the given save
+            !+ Read time, ax, ay of the given save
             offset = offset + byv
             if (present(sav)) then
                 sav2 = sav
                 if (sav .le. arg%sav) then
-                    ! if sav < 0, then access back of list
-                    ! -1 is the final element in the list
+                    !+
+                    ! If sav < 0, then access back of list.
+                    ! -1 is the final element in the list.
                     ! -2 is the penultimate element, and so on.
+                    !-
                     if (sav .lt. 0) then
                         sav2 = arg%sav + sav + 1
                         if (sav2 .gt. arg%sav) then
@@ -236,18 +262,18 @@ contains
                         end if
                     end if
                     offset = offset + (sav2-1)*(byt+byax+byay)
-                    !read time
+                    !+ Read time
                     if (present(t)) then
                         read(u, pos=offset) t
                     end if
-                    !read ax
+                    !+ Read ax
                     inquire(file=file, size=temp)
                     offset = offset + byt
                     if (present(ax)) then
                         allocate(ax(arg%nx, arg%ny+1))
                         read(u, pos=offset) ax
                     end if
-                    !read ay
+                    !+ Read ay
                     offset = offset + byax
                     if (present(ay)) then
                         allocate(ay(arg%nx+1, arg%ny))
@@ -264,7 +290,7 @@ contains
         real, allocatable, intent(inout) :: data(:,:)
         integer :: u
 
-        ! check file still exists
+        !+ Check file exists
         call checkex(file)
 
         open(newunit=u, file=file, status='old', action='read', form='unformatted')
@@ -303,10 +329,9 @@ contains
         integer :: i, solver, nargs
         character(len=512) :: b
 
-        ! check if arguments were supplied and print help dialogue if not
+        !+ Check if arguments were supplied and print help dialogue if not
         nargs = command_argument_count()
         if (nargs .eq. 0) then
-            call print_help()
             stop
         endif
 
@@ -316,29 +341,31 @@ contains
             call get_command_argument(i, arglist(i))
         end do
 
+        !+
         ! Default arguments
-        ! consider not having any so that breaking changes don't occur
-        arg%solv = 2
-        arg%freq = 0 !No saves
+        !-
+        arg%solv = 2 ! Heun solver by default
+        arg%freq = 0 ! Disable saving by default
         arg%file = ''
         arg%dir = ''
         arg%sav = 0
         arg%t = -1
 
-        ! These will throw an error if not changed
+        !+
+        ! These will throw an error if not changed.
+        ! This is intentional, to prevent simulations launching
+        ! Without critical parameters being set
+        !-
         arg%bc = -1
         arg%d = -1
         arg%t = -1
         arg%lx = -1
         arg%ly = -1
 
-        ! Parse arguments
+        !+ Parse command line arguments
         i=1
         do while (i .le. nargs)
             select case (arglist(i))
-            case('-h', '--help')
-                call print_help()
-                stop
             case ('-s', '--freq')
                 read(arglist(i+1), *) arg%freq
                 i = i+1
@@ -422,9 +449,4 @@ contains
             end if
         end if
     end function parse_args
-
-
-    subroutine print_help()
-        print *, "Calling print_help"
-    end subroutine print_help
 end module cft_io

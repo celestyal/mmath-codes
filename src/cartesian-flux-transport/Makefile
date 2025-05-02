@@ -1,3 +1,4 @@
+# Note: setup.f90 should be compiled and executed separately
 # Disable the default rules
 MAKEFLAGS += --no-builtin-rules --no-builtin-variables
 
