@@ -21,7 +21,7 @@ program tests_find_dt
         function test_standard() result(test_result)
             real, allocatable :: vx(:,:), vy(:,:)
             real :: test_output
-            real, parameter :: expected_output=30.0
+            real, parameter :: expected_output=150.0
             logical :: test_result
             character(128) :: message
             

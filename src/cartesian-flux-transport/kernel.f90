@@ -153,34 +153,26 @@ contains
     end subroutine f
 
 
-    !+
-    ! Chooses a value for dt that satisfied the CFL condition
-    ! Note: this is necessary but not sufficient for convergence
-    !-
+    !+ Chooses a value for dt that satisfied the CFL condition
+    !- Note: this is necessary but not sufficient for convergence
     function find_dt(vx, vy, dx, dy, d) result(dt)
         real :: dt
         real, dimension(3) :: t
         real, intent(in) :: vx(:,:), vy(:,:), dx, dy, d
         integer :: i
 
-        !+ Times to to cross a cell
+        ! Times to to cross a cell
         t(1) = dx / maxval(abs(vx))
         t(2) = dy / maxval(abs(vy))
         t(3) = (dx*dy) / abs(d)
 
-        !+ Reference value to compare to
+        ! Reference value to compare to
         dt = huge(1.)
 
         !+ Choose the smallest non-zero value
         do concurrent (i = 1:3, (t(i) .gt. 0) .and. (t(i) .lt. dt))
             dt = t(i)
         end do
-
-        !+
-        ! Scale to ensure multiple time steps are required to cross a cell
-        ! (promotes stability)
-        !-
-        dt = dt / 5.0
     end function find_dt
 
 

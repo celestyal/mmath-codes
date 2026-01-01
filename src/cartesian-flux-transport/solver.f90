@@ -40,7 +40,7 @@ program cft_solver
         !+ Find a suitably small dt (necessary for convergence)
         dx = arg%lx*(arg%xmax-arg%xmin)/arg%nx
         dy = arg%ly*(arg%ymax-arg%ymin)/arg%ny
-        dt = find_dt(vx, vy, dx, dy, arg%d)
+        dt = find_dt(vx, vy, dx, dy, arg%d)/5.0
 
         if (arg%freq .gt. 0) then
             !+ Select the lower of dt or the save frequency
