@@ -3,39 +3,39 @@ program tests_find_dt
 
     implicit none
 
-    ! Test result variables
-    integer, parameter :: num_tests = 1
-    logical :: passed(num_tests)
-
     ! Perform tests
-    passed(1) = test_find_dt()
-
-    !+ If any test failed, exit with code 1
-    if(any(passed) .eqv. .false.) stop 1
+    call test_find_dt()
 
     contains
-        function test_find_dt() result(passed)
-            logical :: passed, test_result(1)
-            real :: test_output
-            real, allocatable :: vx(:,:), vy(:,:)
-            character(128) :: message
+        subroutine test_find_dt()
+            logical :: passed, test_results(1)
 
             passed = .true.
 
-            !+ First test
+            test_results(1) = test_standard()
+
+            !+ If any test failed, exit with code 1
+            if(any(test_results) .eqv. .false.) stop 1
+        end subroutine test_find_dt
+
+        function test_standard() result(test_result)
+            real, allocatable :: vx(:,:), vy(:,:)
+            real :: test_output
+            real, parameter :: expected_output=30.0
+            logical :: test_result
+            character(128) :: message
+            
             allocate(vx(100,100), vy(100, 100))
             vx(:,:) = 2.0
             vy(:,:) = 0.0
             test_output = find_dt(vx, vy, 300.0, 300.0, 0.0)
-            test_result(1) = test_output == 30.0
-            if (test_result(1) .eqv. .true.) then
-                write(message, '(A)') 'Test passed'
+            test_result = test_output == expected_output
+
+            if (test_result .eqv. .false.) then
+                write(message, '(A,F6.2,A,F6.2)') "find_dt test Failed: Expected value of", expected_output, " but got", test_output
             else
-                write(message, '(A,F6.2,A,F6.2)') "find_dt test Failed: Expected value of ", 30.0, " but got", test_output
+                write(message, '(A)') 'Test passed'
             end if
             print *, message
-            
-            !+ Check if any test failed
-            if(any(test_result) .eqv. .false.) passed = .false.
-        end function test_find_dt
+        end function test_standard
 end program tests_find_dt
